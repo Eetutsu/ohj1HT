@@ -16,23 +16,27 @@ namespace HT
             // Kirjoita ohjelmakoodisi tähän
 
 
-            PhysicsStructure ukko1 = PiirraLumiukko(false, 300.0, 100.0, Color.Blue);
-            PhysicsStructure ukko2 = PiirraLumiukko(true, 300.0, 100.0,Color.Red);
+            PhysicsObject ukko1 = PiirraLumiukko(false, 300.0, 100.0);
+            ukko1.Image = LoadImage("Lumiukko2.PNG");
+            PhysicsObject ukko2 = PiirraLumiukko(true, 300.0, 100.0);
+            ukko2.Image = LoadImage("Lumiukko1.PNG");
 
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
-            Keyboard.Listen(Key.Up, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(0, 100));
+            Keyboard.Listen(Key.Up, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(0, 300));
             Keyboard.Listen(Key.Right, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(100, 0));
-            Keyboard.Listen(Key.Down, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(0, -100));
+            Keyboard.Listen(Key.Down, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(0, -1000));
             Keyboard.Listen(Key.Left, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(-100, 0));
+          
 
-            Keyboard.Listen(Key.W, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(0, 100));
+
+            Keyboard.Listen(Key.W, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(0, 300));
             Keyboard.Listen(Key.D, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(100, 0));
-            Keyboard.Listen(Key.S, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(0, -100));
+            Keyboard.Listen(Key.S, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(0, -1000));
             Keyboard.Listen(Key.A, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(-100, 0));
 
             Camera.ZoomToLevel();
-            Level.Background.Color = Color.Black;
+            Level.Background.Color = Color.Red;
 
             Level.CreateBorders();
             
@@ -41,7 +45,7 @@ namespace HT
         }
 
 
-        public PhysicsStructure PiirraLumiukko(bool c ,double a, double b, Color d)
+        public PhysicsObject PiirraLumiukko(bool c ,double a, double b)
         {
 
             double p1X = 0;
@@ -51,58 +55,49 @@ namespace HT
             }
             else p1X = Level.Right - a;
 
-            PhysicsObject p1 = new PhysicsObject(100.0, 100.0, Shape.Circle);
-            p1.Y = Level.Bottom + b;
-            p1.X = p1X;
-            Add(p1);
+            PhysicsObject ukko = new PhysicsObject(100,300 , Shape.Circle);
+            ukko.Y = Level.Bottom + b;
+            ukko.X = p1X;
+            Add(ukko);
 
-            PhysicsObject p2 = new PhysicsObject(50.0, 50.0, Shape.Circle);
-            p2.Y = p1.Y  + 50+25;
-            p2.X = p1.X;
-            Add(p2);
 
-            PhysicsObject p3 = new PhysicsObject(30.0, 30.0, Shape.Circle);
-            p3.Y = p2.Y + 30+10;
-            p3.X = p1.X;
-            Add(p3);
+            ukko.CanRotate = false;
+
+         
+            ukko.Restitution = 0.4;
 
             
 
-            PhysicsStructure ukko = new PhysicsStructure(p1, p2, p3);
-            ukko.Restitution = 0.4;
             Add(ukko);
 
-            ukko.Color = d;
+            
 
             Gravity = new Vector(0, -400);
 
             return ukko;
 
         }
+
+
+        void TasonPalikat(double x, double y , Shape muoto, double X, double Y)
+        {
+            PhysicsObject taso = new PhysicsObject(x, y, muoto);
+            taso.X = X;
+            taso.Y = Y;
+            taso.MakeStatic();
+            Add(taso);
+        }
+
+
         void LuoTaso()
         {
             //int b = Arvo();
             int b = 0;
             if (b == 0)
             {
-                PhysicsObject taso1 = new PhysicsObject(500.0, 100.0, Shape.Rectangle);
-                taso1.Y = Level.Bottom;
-                taso1.X = 0;
-                taso1.MakeStatic();
-                Add(taso1);
-                PhysicsObject taso2 = new PhysicsObject(100.0, 500.0, Shape.Rectangle);
-                taso2.Y = 0;
-                taso2.X = Level.Left;
-                taso2.IgnoresGravity = true;
-                taso2.MakeStatic();
-                Add(taso2);
-                PhysicsObject taso3 = new PhysicsObject(100.0, 500.0, Shape.Rectangle);
-                taso3.Y = 0;
-                taso3.X = Level.Right;
-                taso3.IgnoresGravity = true;
-                taso3.MakeStatic();
-                Add(taso3);
-
+                TasonPalikat(500, 100, Shape.Rectangle, 0, Level.Bottom);
+                TasonPalikat(100, 500, Shape.Rectangle, Level.Left, 0);
+                TasonPalikat(100, 500, Shape.Rectangle, Level.Right, 0);
             }
 
             if (b == 1)
@@ -129,11 +124,18 @@ namespace HT
 
 
         }
-        private void LyoUkkoa(PhysicsStructure ukko, Vector suunta)
+
+        
+        
+
+
+
+        private void LyoUkkoa(PhysicsObject ukko, Vector suunta)
         {
 
             ukko.Hit(ukko.Mass * suunta);
         }
+
 
         public static int Arvo()
         {
@@ -150,6 +152,20 @@ namespace HT
 
             }
             return b;
+        }
+
+        void LuoPistelaskuri()
+        {
+            IntMeter pistelaskuri = new IntMeter(0);
+
+            Label pistenaytto = new Label();
+            pistenaytto.X = Screen.Left + 100;
+            pistenaytto.Y = Screen.Top - 100;
+            pistenaytto.TextColor = Color.Black;
+            pistenaytto.Color = Color.White;
+
+            pistenaytto.BindTo(pistelaskuri);
+            Add(pistenaytto);
         }
     }
 }

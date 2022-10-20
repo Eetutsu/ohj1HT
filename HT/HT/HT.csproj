@@ -12,5 +12,18 @@
         <PackageReference Include="Jypeli.FarseerPhysics.NET" Version="2.*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Content\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Content\Lumiukko1.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Content\Lumiukko2.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
 
