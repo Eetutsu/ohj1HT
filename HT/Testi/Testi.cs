@@ -15,18 +15,14 @@ public class Testi
     /// </summary>
     public static void Main()
     {
-        int Min = 0;
-        int Max = 4;
-        int[] a = new int[4];
-        int b = 0;
-
-        Random randNum = new Random();
-        for (int i = 0; i < a.Length; i++)
+        for (int i = 0; i < 10; i++)
         {
-            b = a[i];
-            b = randNum.Next(Min, Max);
+            Random rnd = new Random();
+            int b = rnd.Next(0,4);
+
             Console.WriteLine(b);
         }
+        
     }
 
 }
