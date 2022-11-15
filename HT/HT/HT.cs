@@ -5,11 +5,15 @@ using Jypeli.Widgets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Transactions;
 
 namespace HT
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class HT : PhysicsGame
     {
         IntMeter laskuri1;
@@ -17,11 +21,23 @@ namespace HT
         PhysicsObject ukko1;
         PhysicsObject ukko2;
 
+        PhysicsObject alaTaso;
+
         bool pelaaja1VoiHypata = true;
         bool pelaaja2VoiHypata = true;
 
+        /// <summary>
+        /// Luodaan alkuvalikko
+        /// Alkuvalikossa voidaan aloittaa peli, jolloin arvotaan kenttö, jossa pelataan ja luodaan ukot
+        /// Tai lopettaa peli eli sulkea se
+        /// </summary>
+        /// 
+
         public override void Begin()
         {
+
+            Level.Background.Color = Color.White;
+
             string[] vaihtoehdot = { "Aloita Peli", "Lopeta" };
             MultiSelectWindow alkuvalikko = new MultiSelectWindow("Lumiukko Sumo", vaihtoehdot);
             Add(alkuvalikko);
@@ -37,14 +53,21 @@ namespace HT
             ukko2.Image = LoadImage("Lumiukko1.PNG");
             ukko2.MakeStatic();
 
+            
 
 
             //TODO:
+            //Tee ukon siirto kunnolla
             //Luo loputkin kentät
             //Tee kommentit
 
         }
 
+        /// <summary>
+        /// Aloita peli aliohjelma ensin pyyhkii kaiken, mitä pääohjelmassa tehtiin, jonka jälkeen se luo pelattavat hahmot,
+        /// luo tason, luo näppäimet, luo alatason, josta pisteet lasketaan, sekä törmäys tapahtumat.
+        /// </summary>
+        /// 
 
         void AloitaPeli()
         {
@@ -52,12 +75,12 @@ namespace HT
 
             LuoUkot();
 
-            PhysicsObject alaTaso = TasonPalikat(10000, 10, Shape.Rectangle, 0, Level.Bottom - 100);
+           alaTaso = TasonPalikat(10000, 10, Shape.Rectangle, 0, Level.Bottom - 100);
 
             LuoNappaimet();
 
             Camera.ZoomToLevel();
-            Level.Background.Color = Color.Red;
+            Level.Background.Color = Color.White;
             Level.CreateTopBorder();
 
             AddCollisionHandler(ukko1, alaTaso, Lisays);
@@ -71,6 +94,12 @@ namespace HT
 
             LuoTaso();
         }
+
+
+        /// <summary>
+        /// LuoUkot aliohjelma luo ukot tiettyyn X ja Y pisteisiin. Annetaan omat tagit kummallekkin ukolle sekä annetaan
+        /// niille oma ulkoasu
+        /// </summary>
 
 
         void LuoUkot()
@@ -87,6 +116,13 @@ namespace HT
             ukko2.Tag = "pelaaja2";
         }
 
+
+        /// <summary>
+        /// LuoNappaimet antaa tapahtumat näppäimille, joilla ukkoja liikutetaan
+        /// </summary>
+        
+
+
         void LuoNappaimet()
         {
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
@@ -98,16 +134,32 @@ namespace HT
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Up, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko1, new Vector(0, y));
             Keyboard.Listen(Key.Right, ButtonState.Down, LyoUkkoa, "Liikuta lumiukkoa oikealle", ukko1, new Vector(x, 0));
+            Keyboard.Listen(Key.Right, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa oikealle", ukko1, new Vector(x, 0));
             Keyboard.Listen(Key.Down, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa alaspäin", ukko1, new Vector(0, -y));
             Keyboard.Listen(Key.Left, ButtonState.Down, LyoUkkoa, "Liikuta lumiukkoa vasemmalle", ukko1, new Vector(-x, 0));
+            Keyboard.Listen(Key.Left, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa vasemmalle", ukko1, new Vector(-x, 0));
 
 
 
             Keyboard.Listen(Key.W, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa ylöspäin", ukko2, new Vector(0, y));
             Keyboard.Listen(Key.D, ButtonState.Down, LyoUkkoa, "Liikuta lumiukkoa oikealle", ukko2, new Vector(x, 0));
+            Keyboard.Listen(Key.D, ButtonState.Pressed, LyoUkkoa, "Liikuta lumiukkoa oikealle", ukko2, new Vector(3*x, 0));
             Keyboard.Listen(Key.S, ButtonState.Pressed, LyoUkkoa, "Lyö lumiukkoa alaspäin", ukko2, new Vector(0, -y));
             Keyboard.Listen(Key.A, ButtonState.Down, LyoUkkoa, "Liikuta lumiukkoa vasemmalle", ukko2, new Vector(-x, 0));
+            Keyboard.Listen(Key.A, ButtonState.Pressed, LyoUkkoa, "Liikuta lumiukkoa vasemmalle", ukko2, new Vector(3*-x, 0));
         }
+
+
+
+        /// <summary>
+        /// PiirräLumiukko piirtää lumiukot
+        /// </summary>
+        /// <param name="kumpiPuoli">jos false, piirretään ukko oikealle puolelle, jos true, piirtyy se vasemmalle</param>
+        /// <param name="synnytysX">Kuinka paljon ukko on irti seinästä</param>
+        /// <param name="synnytysY">Kuinka paljon ukko on irti lattiasta</param>
+        /// <returns>Piirretyn lumiukon</returns>
+         
+
 
         public PhysicsObject PiirraLumiukko(bool kumpiPuoli ,double synnytysX, double synnytysY)
         {
@@ -131,7 +183,7 @@ namespace HT
             ukko.CanRotate = false;
 
          
-            ukko.Restitution = 1;
+            ukko.Restitution = 1.5;
 
             
 
@@ -139,19 +191,31 @@ namespace HT
 
             ukko.LinearDamping = 0.95;
 
-            Gravity = new Vector(0, -400);
+            Gravity = new Vector(0, -800);
 
             return ukko;
 
         }
 
+       /// <summary>
+       /// Tarkistaa, osuuko ukko lattiaan, jos osuu ukko voi hypätä
+       /// </summary>
+       /// <param name="ukko">Ukko jota tarkkaillaan</param>
+       /// <param name="lattia">Kentän lattia</param>
        
+
         void Hyppy(PhysicsObject ukko, PhysicsObject lattia)
         {
             if (ukko.Tag == "pelaaja1") pelaaja1VoiHypata = true;
             else pelaaja2VoiHypata = true;
         }
 
+        /// <summary>
+        /// Lisätään pisteitä, kun ukko osuu alatasoon
+        /// </summary>
+        /// <param name="ukko">Ukko, joka osuu lattiaan</param>
+        /// <param name="taso">Alataso</param>
+        /// 
 
         void Lisays(PhysicsObject ukko, PhysicsObject taso)
         {
@@ -159,28 +223,30 @@ namespace HT
             if (ukko.Tag == "pelaaja1") laskuri1.Value += 1;
             else laskuri2.Value += 1;
 
-            Siirtyma(ukko1);
-            Siirtyma(ukko2);
+            Siirtyma(ukko, taso);
+            
+
 
             if (laskuri1.Value == maxPisteet || laskuri2.Value == maxPisteet) LopetaPeli(maxPisteet);
 
         }
 
-
-        void Siirtyma(PhysicsObject ukko)
+        void Siirtyma(PhysicsObject ukko, PhysicsObject taso)
         {
-            ukko1.IgnoresCollisionResponse = true;
-            ukko2.IgnoresCollisionResponse = true;
-
-            Vector spawn2 = new Vector(Level.Left + 300, Level.Bottom + 300);
-            Vector spawn1 = new Vector(Level.Right - 300, Level.Bottom + 300);
-            ukko1.MoveTo(spawn1, 10000);
-            ukko2.MoveTo(spawn2, 10000);
-
-            ukko1.IgnoresCollisionResponse = false;
-            ukko2.IgnoresCollisionResponse = false;
+  
+                ukko.Position = new Vector(0, 150);
         }
 
+        /// <summary>
+        /// Luodaan tasossa käytettäviä palikoita
+        /// </summary>
+        /// <param name="x">palikan korekus</param>
+        /// <param name="y">palikan leveys</param>
+        /// <param name="muoto">palikan muoto</param>
+        /// <param name="X">palikan X koordinaatti</param>
+        /// <param name="Y">Y koordinaatti</param>
+        /// <param name="onLattia">jos true, on lattia, jos false niin seinä</param>
+        /// <returns>Palikan</returns>
 
         PhysicsObject TasonPalikat(double x, double y , Shape muoto, double X, double Y, bool onLattia = false)
         {
@@ -189,7 +255,8 @@ namespace HT
             taso.X = X;
             taso.Y = Y;
             taso.MakeStatic();
-            taso.Restitution = 0.1;
+            taso.Restitution = -0.5;
+            taso.Image = LoadImage("KenttaPalikka.png");
             Add(taso);
 
             if (onLattia) taso.Tag = "lattia";
@@ -198,11 +265,16 @@ namespace HT
         }
 
 
+        /// <summary>
+        /// Luodaan Taso käyttäen hyväksi TasonPalikat luomia palikoita
+        /// Haetaan Arvo aliohjelmasta jokin satunnainen arvo, joka määrää, mikä kenttä luodaan
+        /// </summary>
+
+
         void LuoTaso()
         {
-            //int b = Arvo();
-            int b = 2;
-            if (b == 0)
+            int mikaTaso = Arvo();
+            if (mikaTaso == 0)
             {
                  
                 TasonPalikat(600, 100, Shape.Rectangle, 0, Level.Bottom, true);
@@ -210,7 +282,7 @@ namespace HT
                 TasonPalikat(50, 500, Shape.Rectangle, Level.Right+10, 0);
             }
 
-            if (b == 1)
+            if (mikaTaso == 1)
             {
                 for (double i = Level.Left; i<=0; i+=80)
                 {
@@ -226,32 +298,28 @@ namespace HT
                 TasonPalikat(10, 1000, Shape.Rectangle, Level.Right+500, 0);
 
             }
-            if (b == 2)
+            if (mikaTaso == 2)
             {
-                for (int i = 1; i<=6; i++)
+                for (int i = 1; i<=600; i+=100)
                 {
                     double palikanX = Level.Left;
                     double palikanY = Level.Bottom;
-                    TasonPalikat(50, 50, Shape.Rectangle, palikanX, palikanY, true);
-                    if (i%2 == 0)
-                    {
-                        TasonPalikat(50, 50, Shape.Rectangle, palikanX+=100, palikanY+=100, true);
-                    }
-                    else TasonPalikat(50, 50, Shape.Rectangle, palikanX += 100, palikanY -= 100, true);
-
+                    TasonPalikat(50, 50, Shape.Rectangle, palikanX+=i*2, palikanY+=100, true);
+                 
                 }
+                TasonPalikat(50, 50, Shape.Rectangle, 0, 65, true);
             }
-            if (b == 3)
-            {
-                PhysicsObject taso1 = new PhysicsObject(200.0, 100.0, Shape.Rectangle);
-                taso1.Y = Level.Bottom;
-                taso1.X = 0;
-                Add(taso1);
-            }
+
 
 
         }
 
+
+        /// <summary>
+        /// LyöUkkoa aliojelma kertoo, että ukkoa halutaan lyödä tietyllä voimalla tiettyyn suuntaan
+        /// </summary>
+        /// <param name="ukko">Mikä ukko on kyseessä</param>
+        /// <param name="suunta">Jos ukon suunta on ylöspäin, ei ukko voi hypätä</param>
 
 
         private void LyoUkkoa(PhysicsObject ukko, Vector suunta)
@@ -274,13 +342,25 @@ namespace HT
             ukko.Hit(ukko.Mass * suunta);
         }
 
+        /// <summary>
+        /// Arvotaan jokin arvo 0,2 välillä
+        /// </summary>
+        /// <returns>Arovttu luku</returns>
+        
 
         public static int Arvo()
         {
             Random rnd = new Random();
-            int b = rnd.Next(0,4);
+            int b = rnd.Next(0,3);
             return b;
         }
+
+        /// <summary>
+        /// Luodaan 2 pistelaskuria kummallekkin pelaajalle. Pistelaskuri laskee pisteitä pelaajalle, kun toinen pelaaja tippuu
+        /// </summary>
+        /// <param name="x">Laskurin x koordinaatti</param>
+        /// <param name="pelaaja">kumpi pelaaja on kyseessä</param>
+        /// <returns>pistelaskurin</returns>
 
 
         IntMeter LuoPistelaskuri(double x, string pelaaja)
@@ -301,6 +381,13 @@ namespace HT
             return pistelaskuri;
         }
 
+        /// <summary>
+        /// Lopeta peli aliohjelma luo loppuvalikon, kun toinen pelaajista saa 3 pistettä
+        /// Loppuvalikosta voi joko aloittaa pelin uudelleen, jolloin peli taas alkaa alusta. Voi myös lopettaa pelin, eli 
+        /// sulkea pelin
+        /// </summary>
+        /// <param name="maxPisteet">Kumpi pelaajista sai 3 pistettä. Kerrotaan voittaja</param>
+
         void LopetaPeli(int maxPisteet)
         {
             ClearAll();
@@ -308,8 +395,20 @@ namespace HT
             
             string voittaja = "";
 
-            if (laskuri1.Value == maxPisteet) voittaja = "Pelaaja 1 voitti!";
-            else voittaja = "Pelaaja 2 voitti!";
+            if (laskuri1.Value == maxPisteet)
+            {
+                voittaja = "Pelaaja 1 voitti!";
+                ukko1 = PiirraLumiukko(false, 500, 200);
+                ukko1.Image = LoadImage("Lumiukko1.PNG");
+                ukko1.MakeStatic();
+            }
+            else 
+            {
+                voittaja = "Pelaaja 2 voitti!"; 
+                ukko2 = PiirraLumiukko(false, 500,200);
+                ukko2.Image = LoadImage("Lumiukko2.PNG");
+                ukko2.MakeStatic();
+            }
 
             string[] vaihtoehdot = { "Aloita Peli Alusta", "Lopeta" };
             MultiSelectWindow loppuvalikko = new MultiSelectWindow(voittaja, vaihtoehdot);
