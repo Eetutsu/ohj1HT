@@ -9,3 +9,4 @@ ja projektin kuvausta kohdasta Settings.
 
 Lue Git-versiohallinnan tarkemmat käyttöohjeet TIMistä: <https://tim.jyu.fi/view/kurssit/tie/ohj1/harjoitustyo/git>
 
+# ohj1HT
